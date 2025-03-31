@@ -226,6 +226,7 @@ GameObject:
   m_Component:
   - component: {fileID: 110638593}
   - component: {fileID: 110638592}
+  - component: {fileID: 110638594}
   m_Layer: 0
   m_Name: XR Origin
   m_TagString: Untagged
@@ -266,6 +267,22 @@ Transform:
   - {fileID: 958652738}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &110638594
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 110638591}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 857650c7e9bf0164695f0fd9eb5d83b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  EnemyPrefab: {fileID: 3012978340988141991, guid: cc8beec2c09318c4fb4a7c86ee85c947, type: 3}
+  camTransform: {fileID: 267926039}
+  EnemyNumber: 10
+  SpawnRange: 3
 --- !u!1 &267926038
 GameObject:
   m_ObjectHideFlags: 0
@@ -280,6 +297,7 @@ GameObject:
   - component: {fileID: 267926042}
   - component: {fileID: 267926041}
   - component: {fileID: 267926040}
+  - component: {fileID: 267926045}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -494,6 +512,82 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!114 &267926045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 267926038}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 391d4abefbec96844b83dd263590307f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ParticleEffect: {fileID: 0}
+  playerInput: {fileID: 759119671}
+--- !u!1 &759119670
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 759119672}
+  - component: {fileID: 759119671}
+  m_Layer: 0
+  m_Name: playerInput
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &759119671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 759119670}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: 30f4dd4b73088a84383ae89c355ed1b6, type: 3}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: NTS
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
+--- !u!4 &759119672
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 759119670}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.3582612, y: 5.205033, z: 0.17325968}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &958652737
 GameObject:
   m_ObjectHideFlags: 0
@@ -593,3 +687,4 @@ SceneRoots:
   - {fileID: 7446288}
   - {fileID: 1801343182}
   - {fileID: 110638593}
+  - {fileID: 759119672}
