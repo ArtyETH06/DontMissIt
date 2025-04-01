@@ -6,8 +6,15 @@ using System.Collections;
 
 public class SpawnAtFixedDistance : MonoBehaviour
 {
+    // Pour permettre l'accès global au score et aux autres variables importantes
+    public static SpawnAtFixedDistance instance;
+
     [Header("Prefabs")]
     public GameObject EnemyPrefab;
+
+    [Header("Cube Materials")]
+    // Liste des matériaux que le cube utilisera aléatoirement
+    public Material[] cubeMaterials;
 
     [Header("Input Settings")]
     public PlayerInput playerInput;
@@ -32,7 +39,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
     public GameObject startGamePanel;
     // Bouton "Démarrer" contenu dans le StartGamePanel
     public Button startButton;
-    // Texte pour le compte à rebours (affiché avec effet de zoom)
+    // Texte pour le compte à rebours (avec effet de zoom)
     public TextMeshProUGUI countdownText;
     // Texte pour afficher le message final ("StackDisSh*t")
     public TextMeshProUGUI finalMessageText;
@@ -42,9 +49,11 @@ public class SpawnAtFixedDistance : MonoBehaviour
     public GameObject gamePanel;
     // Panel de Game Over affiché en cas de défaite
     public GameObject gameOverPanel;
+    // Texte dans le GameOverPanel pour afficher le message de fin ("Perdu ! Vous avez fait un score de: X")
+    public TextMeshProUGUI gameOverText;
 
     [Header("Score & Particles")]
-    // Texte affichant le score (TextMeshProUGUI)
+    // Texte affichant le score ("Score: X")
     public TextMeshProUGUI scoreText;
     // Prefab des particules à instancier autour d'un cube pour signaler l'ajout de score
     public GameObject particleEffectPrefab;
@@ -55,10 +64,12 @@ public class SpawnAtFixedDistance : MonoBehaviour
     // Indique si le jeu a démarré (après le compte à rebours)
     private bool gameStarted = false;
     // Score du joueur
-    private int score = 0;
+    public int score = 0;
 
     void Start()
     {
+        instance = this;
+
         cam = GetComponent<Camera>();
         if (cam == null)
             cam = Camera.main;
@@ -66,7 +77,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
         touchPressAction = playerInput.actions["TouchPress"];
         touchPosAction = playerInput.actions["TouchPos"];
 
-        // Au lancement, on active le StartGamePanel et on désactive les autres panels
+        // Active le StartGamePanel et désactive les autres panels
         if (startGamePanel != null)
             startGamePanel.SetActive(true);
         if (gamePanel != null)
@@ -78,9 +89,9 @@ public class SpawnAtFixedDistance : MonoBehaviour
         if (finalMessageText != null)
             finalMessageText.gameObject.SetActive(false);
 
-        // Initialise le score à 0
+        // Initialise le score
         if (scoreText != null)
-            scoreText.text = "0";
+            scoreText.text = "Score: 0";
 
         // Ajoute le listener sur le bouton "Démarrer"
         if (startButton != null)
@@ -90,7 +101,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
     // Coroutine pour le compte à rebours et le démarrage du jeu avec effet de zoom
     IEnumerator StartCountdown()
     {
-        // Cache le bouton pour éviter plusieurs clics
+        // Cache le bouton pour éviter les doubles clics
         startButton.gameObject.SetActive(false);
 
         // Active le texte du compte à rebours
@@ -101,22 +112,20 @@ public class SpawnAtFixedDistance : MonoBehaviour
         }
 
         // Compte à rebours de 5 à 1 avec effet de zoom
-        for (int i = 5; i >= 1; i--)
+        for (int i = 3; i >= 1; i--)
         {
             if (countdownText != null)
             {
                 countdownText.text = i.ToString();
-                // Effet de zoom sur 1 seconde
                 float duration = 1f;
                 float elapsed = 0f;
                 while (elapsed < duration)
                 {
-                    // Lerp du scale de 1 à 1.5
+                    // Zoom du scale de 1 à 1.5
                     countdownText.transform.localScale = Vector3.Lerp(Vector3.one, Vector3.one * 1.5f, elapsed / duration);
                     elapsed += Time.unscaledDeltaTime;
                     yield return null;
                 }
-                // Réinitialise le scale
                 countdownText.transform.localScale = Vector3.one;
             }
             yield return new WaitForSecondsRealtime(0.1f);
@@ -128,8 +137,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
         if (finalMessageText != null)
         {
             finalMessageText.gameObject.SetActive(true);
-            finalMessageText.text = "StackDisSh*t";
-            // Effet de zoom pour le message final
+            finalMessageText.text = "Stack\n Dis\nSh*t";
             float finalDuration = 1f;
             float finalElapsed = 0f;
             finalMessageText.transform.localScale = Vector3.one;
@@ -156,7 +164,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
 
     void Update()
     {
-        // Le jeu ne commence qu'après le compte à rebours
+        // Le jeu ne démarre qu'après le compte à rebours
         if (!gameStarted)
             return;
 
@@ -175,14 +183,20 @@ public class SpawnAtFixedDistance : MonoBehaviour
 
         if (!isFirstCubePlaced)
         {
-            // Pour le premier cube, on utilise ScreenToWorldPoint avec spawnDistance
+            // Pour le premier cube, utilise ScreenToWorldPoint avec spawnDistance
             Vector3 screenPoint = new Vector3(touchPos.x, touchPos.y, spawnDistance);
             spawnPos = cam.ScreenToWorldPoint(screenPoint);
             fixedZ = spawnPos.z;  // Enregistre la profondeur du premier cube
             isFirstCubePlaced = true;
 
-            // Instancie le premier cube et lui attribue le tag "FirstCube"
+            // Instancie le premier cube, lui attribue le tag "FirstCube" et lui assigne un matériau aléatoire
             GameObject firstCube = Instantiate(EnemyPrefab, spawnPos, Quaternion.identity);
+            if(cubeMaterials != null && cubeMaterials.Length > 0)
+            {
+                Renderer rend = firstCube.GetComponent<Renderer>();
+                if(rend != null)
+                    rend.material = cubeMaterials[Random.Range(0, cubeMaterials.Length)];
+            }
             firstCube.tag = "FirstCube";
 
             // Création du sol : utilise le bord inférieur du premier cube pour définir la position du sol
@@ -205,38 +219,44 @@ public class SpawnAtFixedDistance : MonoBehaviour
         }
         else
         {
-            // Pour les cubes suivants, calcule le point d'intersection sur le plan à z = fixedZ
+            // Pour les cubes suivants, calcule la position sur le plan à z = fixedZ
             Ray ray = cam.ScreenPointToRay(touchPos);
             float t = (fixedZ - ray.origin.z) / ray.direction.z;
             spawnPos = ray.GetPoint(t);
             GameObject newCube = Instantiate(EnemyPrefab, spawnPos, Quaternion.identity);
+            // Assigne un matériau aléatoire au cube
+            if(cubeMaterials != null && cubeMaterials.Length > 0)
+            {
+                Renderer rend = newCube.GetComponent<Renderer>();
+                if(rend != null)
+                    rend.material = cubeMaterials[Random.Range(0, cubeMaterials.Length)];
+            }
             // Ajoute un composant pour gérer l'ajout du score et l'effet de particules après 3 secondes
             CubeScoreHandler cs = newCube.AddComponent<CubeScoreHandler>();
             cs.Initialize(this, particleEffectPrefab);
         }
     }
 
-    // Méthode pour créer le sol centré sur le premier cube.
-    // "y" correspond au bord inférieur du premier cube, "firstCubePos" sert à centrer le sol en x et z.
+    // Crée le sol (invisible) centré sur le premier cube.
+    // "y" correspond au bord inférieur du premier cube, et "firstCubePos" sert à centrer le sol en x et z.
     void CreateFloor(float y, Vector3 firstCubePos)
     {
         GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
         float width = 10f;
         float length = 10f;
         float thickness = 0.2f;
-        // Positionne le sol de sorte que sa surface supérieure soit alignée avec le bord inférieur du premier cube
+        // Positionne le sol pour que sa surface supérieure soit alignée avec le bord inférieur du premier cube
         Vector3 floorPos = new Vector3(firstCubePos.x, y - thickness / 2, firstCubePos.z);
         floor.transform.position = floorPos;
         floor.transform.localScale = new Vector3(width, thickness, length);
         floor.name = "Floor";
 
-        // Rends le sol 100% transparent
+        // Rend le sol 100% transparent (il existe mais il n'est pas visible)
         Renderer rend = floor.GetComponent<Renderer>();
         Material mat = rend.material;
         Color col = mat.color;
         col.a = 0f;
         mat.color = col;
-        // Paramètres pour le rendu transparent
         mat.SetFloat("_Mode", 3);
         mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
         mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
@@ -246,18 +266,19 @@ public class SpawnAtFixedDistance : MonoBehaviour
         mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         mat.renderQueue = 3000;
 
-        // Ajoute le FloorCollisionHandler et lui assigne les panels
+        // Ajoute le FloorCollisionHandler et lui assigne les panels et le texte Game Over
         FloorCollisionHandler handler = floor.AddComponent<FloorCollisionHandler>();
         handler.gameOverPanel = gameOverPanel;
         handler.gamePanel = gamePanel;
+        handler.gameOverText = gameOverText;
     }
 
-    // Méthode appelée pour ajouter au score et afficher les particules.
+    // Méthode appelée pour mettre à jour le score et afficher les particules.
     public void AddScore(int amount, Vector3 pos)
     {
         score += amount;
         if (scoreText != null)
-            scoreText.text = score.ToString();
+            scoreText.text = "Score: " + score.ToString();
         if (particleEffectPrefab != null)
             Instantiate(particleEffectPrefab, pos, Quaternion.identity);
     }
@@ -277,7 +298,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
         {
             // Attend 3 secondes en temps réel
             yield return new WaitForSecondsRealtime(3f);
-            // Si le jeu est toujours actif, ajoute le score et affiche les particules
+            // Si le jeu est toujours actif, ajoute 1 point et affiche l'effet de particules
             if (Time.timeScale != 0 && spawnManager != null)
             {
                 spawnManager.AddScore(1, transform.position);
@@ -293,6 +314,7 @@ public class FloorCollisionHandler : MonoBehaviour
 {
     public GameObject gameOverPanel; // Assigné automatiquement
     public GameObject gamePanel;     // Assigné automatiquement
+    public TextMeshProUGUI gameOverText; // Texte à mettre à jour dans le GameOverPanel
     private bool gameOverTriggered = false;
 
     void OnCollisionEnter(Collision collision)
@@ -313,6 +335,11 @@ public class FloorCollisionHandler : MonoBehaviour
                 gamePanel.SetActive(false);
             else
                 Debug.LogWarning("GamePanel n'est pas assigné dans FloorCollisionHandler.");
+            // Met à jour le texte du GameOverPanel avec le score final
+            if (gameOverText != null && SpawnAtFixedDistance.instance != null)
+                gameOverText.text = "Perdu ! Vous avez fait un score de: " + SpawnAtFixedDistance.instance.score.ToString();
+            else
+                Debug.LogWarning("GameOverText n'est pas assigné dans FloorCollisionHandler.");
         }
     }
 }
