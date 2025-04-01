@@ -1753,7 +1753,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.70163256, g: 0.9716981, b: 0.6737718, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2193,6 +2193,11 @@ MonoBehaviour:
   gameOverText: {fileID: 561318835}
   scoreText: {fileID: 231547777}
   particleEffectPrefab: {fileID: 8402149817508545829, guid: 365d4cb5f980e1b4ba979f07e6ab35dd, type: 3}
+  finalMessageAudio: {fileID: 8300000, guid: dda1a10def0526f44b38d21678b2521e, type: 3}
+  backgroundMusicAudio: {fileID: 8300000, guid: 09c527e2109652e4e9e15699b194d805, type: 3}
+  startButtonAudio: {fileID: 8300000, guid: b3759661aa843194490a9edf96b720db, type: 3}
+  bgAudioSource: {fileID: 0}
+  restartButton: {fileID: 2096629820}
   score: 0
 --- !u!1 &1992090624
 GameObject:

@@ -64,6 +64,8 @@ public class SpawnAtFixedDistance : MonoBehaviour
     public AudioClip finalMessageAudio;
     // Audio clip de musique de fond, joué une fois le jeu lancé
     public AudioClip backgroundMusicAudio;
+    // Audio clip à jouer dès que l'utilisateur appuie sur le bouton "Démarrer"
+    public AudioClip startButtonAudio;
     // AudioSource pour la musique de fond (initialisé par le script)
     [HideInInspector] public AudioSource bgAudioSource;
 
@@ -113,7 +115,13 @@ public class SpawnAtFixedDistance : MonoBehaviour
 
         // Ajoute le listener sur le bouton "Démarrer"
         if (startButton != null)
-            startButton.onClick.AddListener(() => { StartCoroutine(StartCountdown()); });
+            startButton.onClick.AddListener(() =>
+            {
+                // Joue l'audio associé au bouton dès le clic
+                if (startButtonAudio != null)
+                    AudioSource.PlayClipAtPoint(startButtonAudio, cam.transform.position);
+                StartCoroutine(StartCountdown());
+            });
         // Ajoute le listener sur le bouton "Recommencer" du GameOverPanel
         if (restartButton != null)
             restartButton.onClick.AddListener(RestartGame);
@@ -156,7 +164,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
         if (countdownText != null)
             countdownText.gameObject.SetActive(false);
 
-        // Avant d'afficher le texte final, joue l'audio final (finalMessageAudio)
+        // Avant d'afficher le texte final, joue l'audio final
         if (finalMessageAudio != null)
             AudioSource.PlayClipAtPoint(finalMessageAudio, cam.transform.position);
 
@@ -303,14 +311,23 @@ public class SpawnAtFixedDistance : MonoBehaviour
         handler.gameOverText = gameOverText;
     }
 
-    // Méthode appelée pour mettre à jour le score et afficher les particules.
+    // Méthode appelée pour mettre à jour le score et afficher des particules partout autour du cube.
     public void AddScore(int amount, Vector3 pos)
     {
         score += amount;
         if (scoreText != null)
             scoreText.text = "Score: " + score.ToString();
         if (particleEffectPrefab != null)
-            Instantiate(particleEffectPrefab, pos, Quaternion.identity);
+        {
+            // Instancie plusieurs copies du système de particules autour de la position donnée
+            int count = 10;
+            float radius = 0.5f; // Ajuste le rayon selon tes besoins
+            for (int i = 0; i < count; i++)
+            {
+                Vector3 offset = new Vector3(Random.Range(-radius, radius), Random.Range(-radius, radius), Random.Range(-radius, radius));
+                Instantiate(particleEffectPrefab, pos + offset, Quaternion.identity);
+            }
+        }
     }
 
     // Composant ajouté aux cubes (autres que le premier) pour gérer l'ajout du score après 3 secondes.
@@ -363,7 +380,6 @@ public class FloorCollisionHandler : MonoBehaviour
             // Arrête la musique de fond
             if (SpawnAtFixedDistance.instance != null && SpawnAtFixedDistance.instance.bgAudioSource != null)
                 SpawnAtFixedDistance.instance.bgAudioSource.Stop();
-
             // Arrête le temps pour stopper le jeu
             Time.timeScale = 0f;
             // Affiche le GameOverPanel
