@@ -27,6 +27,8 @@ public class SpawnAtFixedDistance : MonoBehaviour
     [Header("Game Over Settings")]
     // Panel de Game Over à afficher (assigné via l'inspecteur)
     public GameObject gameOverPanel;
+    // Panel de jeu à cacher lors du Game Over (assigné via l'inspecteur)
+    public GameObject gamePanel;
 
     // Indique si le sol a été créé
     private bool isFloorCreated = false;
@@ -37,9 +39,8 @@ public class SpawnAtFixedDistance : MonoBehaviour
     {
         cam = GetComponent<Camera>();
         if (cam == null)
-        {
             cam = Camera.main;
-        }
+            
         touchPressAction = playerInput.actions["TouchPress"];
         touchPosAction = playerInput.actions["TouchPos"];
     }
@@ -86,7 +87,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
                     // Si pas de collider, on se base sur la position du spawn en Y
                     floorY = spawnPos.y - 0.5f;
                 }
-                // On passe également la position du premier cube pour positionner correctement le sol (x et z)
+                // Le sol est créé centré sur le premier cube
                 CreateFloor(floorY, spawnPos);
                 isFloorCreated = true;
             }
@@ -102,7 +103,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
     }
 
     // Méthode pour créer un sol avec une épaisseur donnée, dont la surface supérieure se trouve à "y"
-    // Le sol sera centré sur le premier cube (pour les coordonnées x et z)
+    // Le sol sera centré sur la position du premier cube (pour les coordonnées x et z)
     void CreateFloor(float y, Vector3 firstCubePos)
     {
         // Création d'un sol via un Cube primitif
@@ -111,16 +112,16 @@ public class SpawnAtFixedDistance : MonoBehaviour
         float width = 10f;
         float length = 10f;
         float thickness = 0.2f;
-        // Le pivot du cube est au centre, donc pour que la surface supérieure soit à "y",
-        // on positionne le sol à (firstCubePos.x, y - thickness/2, firstCubePos.z)
+        // Position : centré sur le premier cube pour x et z, et positionné en Y pour que la surface supérieure soit à "y"
         Vector3 floorPos = new Vector3(firstCubePos.x, y - thickness / 2, firstCubePos.z);
         floor.transform.position = floorPos;
         floor.transform.localScale = new Vector3(width, thickness, length);
         floor.name = "Floor";
 
-        // Ajoute le FloorCollisionHandler automatiquement et lui assigne le panel GameOver
+        // Ajoute le FloorCollisionHandler automatiquement et lui assigne les panels
         FloorCollisionHandler handler = floor.AddComponent<FloorCollisionHandler>();
         handler.gameOverPanel = gameOverPanel;
+        handler.gamePanel = gamePanel;
     }
 }
 
@@ -129,6 +130,8 @@ public class FloorCollisionHandler : MonoBehaviour
 {
     // Panel de Game Over à afficher (assigné via le script principal)
     public GameObject gameOverPanel;
+    // Panel de jeu à cacher lors du Game Over (assigné via le script principal)
+    public GameObject gamePanel;
     private bool gameOverTriggered = false;
 
     void OnCollisionEnter(Collision collision)
@@ -141,13 +144,15 @@ public class FloorCollisionHandler : MonoBehaviour
             Time.timeScale = 0f;
             // Affiche le panel de Game Over si assigné
             if (gameOverPanel != null)
-            {
                 gameOverPanel.SetActive(true);
-            }
             else
-            {
                 Debug.LogWarning("GameOverPanel n'est pas assigné dans FloorCollisionHandler.");
-            }
+            
+            // Cache le GamePanel si assigné
+            if (gamePanel != null)
+                gamePanel.SetActive(false);
+            else
+                Debug.LogWarning("GamePanel n'est pas assigné dans FloorCollisionHandler.");
         }
     }
 }

@@ -6860,6 +6860,7 @@ MonoBehaviour:
   spawnDistance: 2
   spawnCooldown: 3
   gameOverPanel: {fileID: 1125841423}
+  gamePanel: {fileID: 873853062}
 --- !u!1 &1992090624
 GameObject:
   m_ObjectHideFlags: 0
