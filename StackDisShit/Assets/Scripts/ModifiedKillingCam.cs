@@ -3,10 +3,11 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class SpawnAtFixedDistance : MonoBehaviour
 {
-    // Pour permettre l'accès global au score et aux autres variables importantes
+    // Pour permettre l'accès global aux variables importantes
     public static SpawnAtFixedDistance instance;
 
     [Header("Prefabs")]
@@ -49,7 +50,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
     public GameObject gamePanel;
     // Panel de Game Over affiché en cas de défaite
     public GameObject gameOverPanel;
-    // Texte dans le GameOverPanel pour afficher le message de fin ("Perdu ! Vous avez fait un score de: X")
+    // Texte dans le GameOverPanel pour afficher le message final ("Perdu ! Vous avez fait un score de: X")
     public TextMeshProUGUI gameOverText;
 
     [Header("Score & Particles")]
@@ -57,6 +58,18 @@ public class SpawnAtFixedDistance : MonoBehaviour
     public TextMeshProUGUI scoreText;
     // Prefab des particules à instancier autour d'un cube pour signaler l'ajout de score
     public GameObject particleEffectPrefab;
+
+    [Header("Audio Settings")]
+    // Audio clip à jouer quand le texte final s'affiche (final message audio)
+    public AudioClip finalMessageAudio;
+    // Audio clip de musique de fond, joué une fois le jeu lancé
+    public AudioClip backgroundMusicAudio;
+    // AudioSource pour la musique de fond (initialisé par le script)
+    [HideInInspector] public AudioSource bgAudioSource;
+
+    [Header("Restart Settings")]
+    // Bouton "Recommencer" présent dans le GameOverPanel
+    public Button restartButton;
 
     // Indique si le sol a été créé
     private bool isFloorCreated = false;
@@ -74,10 +87,15 @@ public class SpawnAtFixedDistance : MonoBehaviour
         if (cam == null)
             cam = Camera.main;
 
+        // Ajoute un AudioSource pour la musique de fond
+        bgAudioSource = gameObject.AddComponent<AudioSource>();
+        bgAudioSource.loop = true;
+        bgAudioSource.playOnAwake = false;
+
         touchPressAction = playerInput.actions["TouchPress"];
         touchPosAction = playerInput.actions["TouchPos"];
 
-        // Active le StartGamePanel et désactive les autres panels
+        // Affiche le StartGamePanel et désactive les autres panels
         if (startGamePanel != null)
             startGamePanel.SetActive(true);
         if (gamePanel != null)
@@ -96,12 +114,15 @@ public class SpawnAtFixedDistance : MonoBehaviour
         // Ajoute le listener sur le bouton "Démarrer"
         if (startButton != null)
             startButton.onClick.AddListener(() => { StartCoroutine(StartCountdown()); });
+        // Ajoute le listener sur le bouton "Recommencer" du GameOverPanel
+        if (restartButton != null)
+            restartButton.onClick.AddListener(RestartGame);
     }
 
-    // Coroutine pour le compte à rebours et le démarrage du jeu avec effet de zoom
+    // Coroutine pour le compte à rebours et le démarrage du jeu avec effet de zoom et lecture audio finale
     IEnumerator StartCountdown()
     {
-        // Cache le bouton pour éviter les doubles clics
+        // Cache le bouton pour éviter plusieurs clics
         startButton.gameObject.SetActive(false);
 
         // Active le texte du compte à rebours
@@ -111,7 +132,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
             countdownText.transform.localScale = Vector3.one;
         }
 
-        // Compte à rebours de 5 à 1 avec effet de zoom
+        // Compte à rebours de 3 à 1
         for (int i = 3; i >= 1; i--)
         {
             if (countdownText != null)
@@ -121,7 +142,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
                 float elapsed = 0f;
                 while (elapsed < duration)
                 {
-                    // Zoom du scale de 1 à 1.5
+                    // Effet de zoom du scale de 1 à 1.5
                     countdownText.transform.localScale = Vector3.Lerp(Vector3.one, Vector3.one * 1.5f, elapsed / duration);
                     elapsed += Time.unscaledDeltaTime;
                     yield return null;
@@ -131,13 +152,19 @@ public class SpawnAtFixedDistance : MonoBehaviour
             yield return new WaitForSecondsRealtime(0.1f);
         }
 
-        // Cache le texte du compte à rebours et affiche le message final dans un autre objet de texte
+        // Cache le texte du compte à rebours
         if (countdownText != null)
             countdownText.gameObject.SetActive(false);
+
+        // Avant d'afficher le texte final, joue l'audio final (finalMessageAudio)
+        if (finalMessageAudio != null)
+            AudioSource.PlayClipAtPoint(finalMessageAudio, cam.transform.position);
+
+        // Affiche le texte final avec effet de zoom
         if (finalMessageText != null)
         {
             finalMessageText.gameObject.SetActive(true);
-            finalMessageText.text = "Stack\n Dis\nSh*t";
+            finalMessageText.text = "Stack\nDis\nSh*t";
             float finalDuration = 1f;
             float finalElapsed = 0f;
             finalMessageText.transform.localScale = Vector3.one;
@@ -150,6 +177,13 @@ public class SpawnAtFixedDistance : MonoBehaviour
             finalMessageText.transform.localScale = Vector3.one;
             yield return new WaitForSecondsRealtime(1f);
             finalMessageText.gameObject.SetActive(false);
+        }
+
+        // Démarre la musique de fond
+        if (backgroundMusicAudio != null)
+        {
+            bgAudioSource.clip = backgroundMusicAudio;
+            bgAudioSource.Play();
         }
 
         // Masque le StartGamePanel et affiche le GamePanel
@@ -191,10 +225,10 @@ public class SpawnAtFixedDistance : MonoBehaviour
 
             // Instancie le premier cube, lui attribue le tag "FirstCube" et lui assigne un matériau aléatoire
             GameObject firstCube = Instantiate(EnemyPrefab, spawnPos, Quaternion.identity);
-            if(cubeMaterials != null && cubeMaterials.Length > 0)
+            if (cubeMaterials != null && cubeMaterials.Length > 0)
             {
                 Renderer rend = firstCube.GetComponent<Renderer>();
-                if(rend != null)
+                if (rend != null)
                     rend.material = cubeMaterials[Random.Range(0, cubeMaterials.Length)];
             }
             firstCube.tag = "FirstCube";
@@ -205,13 +239,9 @@ public class SpawnAtFixedDistance : MonoBehaviour
                 float floorY;
                 Collider cubeCollider = firstCube.GetComponent<Collider>();
                 if (cubeCollider != null)
-                {
                     floorY = cubeCollider.bounds.min.y;
-                }
                 else
-                {
                     floorY = spawnPos.y - 0.5f;
-                }
                 // Crée le sol centré sur le premier cube
                 CreateFloor(floorY, spawnPos);
                 isFloorCreated = true;
@@ -225,10 +255,10 @@ public class SpawnAtFixedDistance : MonoBehaviour
             spawnPos = ray.GetPoint(t);
             GameObject newCube = Instantiate(EnemyPrefab, spawnPos, Quaternion.identity);
             // Assigne un matériau aléatoire au cube
-            if(cubeMaterials != null && cubeMaterials.Length > 0)
+            if (cubeMaterials != null && cubeMaterials.Length > 0)
             {
                 Renderer rend = newCube.GetComponent<Renderer>();
-                if(rend != null)
+                if (rend != null)
                     rend.material = cubeMaterials[Random.Range(0, cubeMaterials.Length)];
             }
             // Ajoute un composant pour gérer l'ajout du score et l'effet de particules après 3 secondes
@@ -251,7 +281,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
         floor.transform.localScale = new Vector3(width, thickness, length);
         floor.name = "Floor";
 
-        // Rend le sol 100% transparent (il existe mais il n'est pas visible)
+        // Rend le sol 100% transparent (il existe mais n'est pas visible)
         Renderer rend = floor.GetComponent<Renderer>();
         Material mat = rend.material;
         Color col = mat.color;
@@ -306,6 +336,13 @@ public class SpawnAtFixedDistance : MonoBehaviour
             Destroy(this);
         }
     }
+
+    // Fonction pour recommencer le jeu en rechargeant la scène active
+    public void RestartGame()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
 }
 
 // Classe gérant la détection des collisions sur le sol.
@@ -323,6 +360,10 @@ public class FloorCollisionHandler : MonoBehaviour
         if (!gameOverTriggered && collision.gameObject.tag != "FirstCube")
         {
             gameOverTriggered = true;
+            // Arrête la musique de fond
+            if (SpawnAtFixedDistance.instance != null && SpawnAtFixedDistance.instance.bgAudioSource != null)
+                SpawnAtFixedDistance.instance.bgAudioSource.Stop();
+
             // Arrête le temps pour stopper le jeu
             Time.timeScale = 0f;
             // Affiche le GameOverPanel
