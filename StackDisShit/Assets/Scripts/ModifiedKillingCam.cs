@@ -50,7 +50,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
     public GameObject gamePanel;
     // Panel de Game Over affiché en cas de défaite
     public GameObject gameOverPanel;
-    // Texte dans le GameOverPanel pour afficher le message final ("Perdu ! Vous avez fait un score de: X")
+    // Texte dans le GameOverPanel pour afficher le message ("Perdu ! Vous avez fait un score de: X")
     public TextMeshProUGUI gameOverText;
 
     [Header("Score & Particles")]
@@ -66,6 +66,8 @@ public class SpawnAtFixedDistance : MonoBehaviour
     public AudioClip backgroundMusicAudio;
     // Audio clip à jouer dès que l'utilisateur appuie sur le bouton "Démarrer"
     public AudioClip startButtonAudio;
+    // Audio clip à jouer quand le joueur perd (Game Over)
+    public AudioClip gameOverAudio;
     // AudioSource pour la musique de fond (initialisé par le script)
     [HideInInspector] public AudioSource bgAudioSource;
 
@@ -380,6 +382,9 @@ public class FloorCollisionHandler : MonoBehaviour
             // Arrête la musique de fond
             if (SpawnAtFixedDistance.instance != null && SpawnAtFixedDistance.instance.bgAudioSource != null)
                 SpawnAtFixedDistance.instance.bgAudioSource.Stop();
+            // Joue l'audio de Game Over
+            if (SpawnAtFixedDistance.instance != null && SpawnAtFixedDistance.instance.gameOverAudio != null)
+                AudioSource.PlayClipAtPoint(SpawnAtFixedDistance.instance.gameOverAudio, Camera.main.transform.position);
             // Arrête le temps pour stopper le jeu
             Time.timeScale = 0f;
             // Affiche le GameOverPanel

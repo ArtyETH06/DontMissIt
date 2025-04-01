@@ -2196,6 +2196,7 @@ MonoBehaviour:
   finalMessageAudio: {fileID: 8300000, guid: dda1a10def0526f44b38d21678b2521e, type: 3}
   backgroundMusicAudio: {fileID: 8300000, guid: 09c527e2109652e4e9e15699b194d805, type: 3}
   startButtonAudio: {fileID: 8300000, guid: b3759661aa843194490a9edf96b720db, type: 3}
+  gameOverAudio: {fileID: 8300000, guid: 6585290151b72d249819c344f403521d, type: 3}
   bgAudioSource: {fileID: 0}
   restartButton: {fileID: 2096629820}
   score: 0
