@@ -86,7 +86,8 @@ public class SpawnAtFixedDistance : MonoBehaviour
                     // Si pas de collider, on se base sur la position du spawn en Y
                     floorY = spawnPos.y - 0.5f;
                 }
-                CreateFloor(floorY);
+                // On passe également la position du premier cube pour positionner correctement le sol (x et z)
+                CreateFloor(floorY, spawnPos);
                 isFloorCreated = true;
             }
         }
@@ -101,7 +102,8 @@ public class SpawnAtFixedDistance : MonoBehaviour
     }
 
     // Méthode pour créer un sol avec une épaisseur donnée, dont la surface supérieure se trouve à "y"
-    void CreateFloor(float y)
+    // Le sol sera centré sur le premier cube (pour les coordonnées x et z)
+    void CreateFloor(float y, Vector3 firstCubePos)
     {
         // Création d'un sol via un Cube primitif
         GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -109,8 +111,9 @@ public class SpawnAtFixedDistance : MonoBehaviour
         float width = 10f;
         float length = 10f;
         float thickness = 0.2f;
-        // Position : le pivot du cube est au centre, donc pour que la surface supérieure soit à "y", on positionne le sol à y - thickness/2
-        Vector3 floorPos = new Vector3(0, y - thickness / 2, 0);
+        // Le pivot du cube est au centre, donc pour que la surface supérieure soit à "y",
+        // on positionne le sol à (firstCubePos.x, y - thickness/2, firstCubePos.z)
+        Vector3 floorPos = new Vector3(firstCubePos.x, y - thickness / 2, firstCubePos.z);
         floor.transform.position = floorPos;
         floor.transform.localScale = new Vector3(width, thickness, length);
         floor.name = "Floor";
