@@ -280,10 +280,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 51027766}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 398035024aba1544b9c4072b4e77ad28, type: 3}
+  m_Script: {fileID: 11500000, guid: 0b6c1c2c806b61d4798c6555b3621ce2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cameraTransform: {fileID: 1450991682}
+  distanceFromCamera: 2
 --- !u!1 &571575325
 GameObject:
   m_ObjectHideFlags: 0
