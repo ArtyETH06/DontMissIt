@@ -5,6 +5,7 @@ using UnityEngine;
 public class FaceCamera : MonoBehaviour
 {
     public Transform cameraTransform;
+    public float distance = 15f;
 
     void Start()
     {
@@ -13,18 +14,14 @@ public class FaceCamera : MonoBehaviour
 
         if (cameraTransform != null)
         {
-            // Position devant la caméra à 1.5m
-            Vector3 offset = cameraTransform.forward * 1.5f;
+            Vector3 offset = cameraTransform.forward * distance;
             transform.position = cameraTransform.position + offset;
 
-            // Rotation vers la caméra (ignorer Y si besoin)
-            transform.LookAt(cameraTransform);
-        }
-    }
+            Vector3 lookDirection = transform.position - cameraTransform.position;
+            lookDirection.y = 0; // Ignore la hauteur pour ne pas tourner vers le bas/haut
+            transform.rotation = Quaternion.LookRotation(lookDirection);
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.green;
-        Gizmos.DrawSphere(transform.position, 0.05f);
+            transform.parent = null; // se détache de tout parent
+        }
     }
 }
