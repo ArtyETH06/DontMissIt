@@ -18,6 +18,16 @@ public class SpawnAtFixedDistance : MonoBehaviour
     // La coordonnée Z (en monde) fixée lors du premier spawn
     private float fixedZ;
 
+    [Header("Cooldown Settings")]
+    // Intervalle minimum entre deux spawns (en secondes)
+    public float spawnCooldown = 3f;
+    // Heure du dernier spawn
+    private float lastSpawnTime = -Mathf.Infinity;
+
+    [Header("Game Over Settings")]
+    // Panel de Game Over à afficher (assigné via l'inspecteur)
+    public GameObject gameOverPanel;
+
     // Indique si le sol a été créé
     private bool isFloorCreated = false;
 
@@ -30,7 +40,6 @@ public class SpawnAtFixedDistance : MonoBehaviour
         {
             cam = Camera.main;
         }
-
         touchPressAction = playerInput.actions["TouchPress"];
         touchPosAction = playerInput.actions["TouchPos"];
     }
@@ -39,9 +48,12 @@ public class SpawnAtFixedDistance : MonoBehaviour
     {
         // Vérifie si l'utilisateur vient de toucher l'écran cette frame
         if (!touchPressAction.WasPerformedThisFrame())
-        {
             return;
-        }
+
+        // Appliquer le cooldown : un spawn toutes les spawnCooldown secondes
+        if (Time.time - lastSpawnTime < spawnCooldown)
+            return;
+        lastSpawnTime = Time.time;
 
         // Récupère la position du toucher (X, Y en coordonnées écran)
         Vector2 touchPos = touchPosAction.ReadValue<Vector2>();
@@ -55,10 +67,11 @@ public class SpawnAtFixedDistance : MonoBehaviour
             fixedZ = spawnPos.z;   // Enregistre la profondeur définie par le premier cube
             isFirstCubePlaced = true;
 
-            // Instancie le premier cube
+            // Instancie le premier cube et lui assigne le tag "FirstCube"
             GameObject firstCube = Instantiate(EnemyPrefab, spawnPos, Quaternion.identity);
+            firstCube.tag = "FirstCube";
 
-            // Création du sol : on définit le niveau Y minimal à partir du bord inférieur du cube
+            // Création du sol : on définit le niveau Y minimal à partir du bord inférieur du premier cube
             if (!isFloorCreated)
             {
                 float floorY;
@@ -70,7 +83,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
                 }
                 else
                 {
-                    // Si pas de collider, on se base sur la position du spawn en y
+                    // Si pas de collider, on se base sur la position du spawn en Y
                     floorY = spawnPos.y - 0.5f;
                 }
                 CreateFloor(floorY);
@@ -90,16 +103,48 @@ public class SpawnAtFixedDistance : MonoBehaviour
     // Méthode pour créer un sol avec une épaisseur donnée, dont la surface supérieure se trouve à "y"
     void CreateFloor(float y)
     {
-        // On crée un sol en utilisant un Cube primitif
+        // Création d'un sol via un Cube primitif
         GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        // Définir des dimensions pour le sol (large et long pour couvrir la zone de jeu)
+        // Dimensions du sol
         float width = 10f;
         float length = 10f;
         float thickness = 0.2f;
-        // Le pivot du cube est au centre, donc pour que la surface supérieure soit à "y", on positionne le sol à y - thickness/2
+        // Position : le pivot du cube est au centre, donc pour que la surface supérieure soit à "y", on positionne le sol à y - thickness/2
         Vector3 floorPos = new Vector3(0, y - thickness / 2, 0);
         floor.transform.position = floorPos;
         floor.transform.localScale = new Vector3(width, thickness, length);
         floor.name = "Floor";
+
+        // Ajoute le FloorCollisionHandler automatiquement et lui assigne le panel GameOver
+        FloorCollisionHandler handler = floor.AddComponent<FloorCollisionHandler>();
+        handler.gameOverPanel = gameOverPanel;
+    }
+}
+
+// Classe gérant la détection des collisions sur le sol
+public class FloorCollisionHandler : MonoBehaviour
+{
+    // Panel de Game Over à afficher (assigné via le script principal)
+    public GameObject gameOverPanel;
+    private bool gameOverTriggered = false;
+
+    void OnCollisionEnter(Collision collision)
+    {
+        // Si l'objet entrant en collision n'est pas le premier cube (tag différent de "FirstCube")
+        if (!gameOverTriggered && collision.gameObject.tag != "FirstCube")
+        {
+            gameOverTriggered = true;
+            // Arrête le temps pour stopper le jeu (optionnel)
+            Time.timeScale = 0f;
+            // Affiche le panel de Game Over si assigné
+            if (gameOverPanel != null)
+            {
+                gameOverPanel.SetActive(true);
+            }
+            else
+            {
+                Debug.LogWarning("GameOverPanel n'est pas assigné dans FloorCollisionHandler.");
+            }
+        }
     }
 }
