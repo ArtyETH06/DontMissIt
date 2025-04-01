@@ -156,8 +156,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -19.003, y: 550}
-  m_SizeDelta: {x: 38.0056, y: 50}
+  m_AnchoredPosition: {x: 18.423, y: 0.000017166}
+  m_SizeDelta: {x: 196.847, y: 281.4507}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &47799613
 MonoBehaviour:
@@ -182,7 +182,7 @@ MonoBehaviour:
   m_text: 5
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: 79459efec17a4d00a321bdcc27bbc385, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -206,8 +206,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 50
-  m_fontSizeBase: 50
+  m_fontSize: 300
+  m_fontSizeBase: 300
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -557,8 +557,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 77.631, y: 269}
-  m_SizeDelta: {x: 231.2736, y: 50}
+  m_AnchoredPosition: {x: 18.423, y: 126.23}
+  m_SizeDelta: {x: 420.4437, y: 282.4628}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &171085094
 MonoBehaviour:
@@ -580,10 +580,14 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: StackDisSh*t !
+  m_text: 'Stack
+
+    Dis
+
+    Sh*t !'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: 8b29aaa3eec7468097ff07adfcf29ac9, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -607,13 +611,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 32
-  m_fontSizeBase: 32
+  m_fontSize: 150
+  m_fontSizeBase: 150
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -1087,7 +1091,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.392}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2170,6 +2174,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EnemyPrefab: {fileID: 3012978340988141991, guid: cc8beec2c09318c4fb4a7c86ee85c947, type: 3}
+  cubeMaterials:
+  - {fileID: 2100000, guid: 9f495a9167fcafe419b9eab60f985cb6, type: 2}
+  - {fileID: 2100000, guid: 088f0db4eaa0ea348afc993c5741d471, type: 2}
+  - {fileID: 2100000, guid: 182a33287e02f3348936c7185b6613ec, type: 2}
+  - {fileID: 2100000, guid: 85d7604e00aad25489f1ef9187aaf762, type: 2}
+  - {fileID: 2100000, guid: c7081aa0b26783d40a5204cd0315a49f, type: 2}
+  - {fileID: 2100000, guid: 0dc629df8f0ae0f4ba14aaa69116e423, type: 2}
   playerInput: {fileID: 1992090625}
   spawnDistance: 4
   spawnCooldown: 3
@@ -2179,8 +2190,10 @@ MonoBehaviour:
   finalMessageText: {fileID: 171085094}
   gamePanel: {fileID: 873853062}
   gameOverPanel: {fileID: 1125841423}
+  gameOverText: {fileID: 561318835}
   scoreText: {fileID: 231547777}
   particleEffectPrefab: {fileID: 8402149817508545829, guid: 365d4cb5f980e1b4ba979f07e6ab35dd, type: 3}
+  score: 0
 --- !u!1 &1992090624
 GameObject:
   m_ObjectHideFlags: 0
