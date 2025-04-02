@@ -78,6 +78,8 @@ public class SpawnAtFixedDistance : MonoBehaviour
     // Indique si le sol a été créé
     private bool isFloorCreated = false;
     private Camera cam;
+    // La caméra figée qui sert de référence pour les positions de spawn
+    private Camera fixedCamera;
     // Indique si le jeu a démarré (après le compte à rebours)
     private bool gameStarted = false;
     // Score du joueur
@@ -189,6 +191,15 @@ public class SpawnAtFixedDistance : MonoBehaviour
             finalMessageText.gameObject.SetActive(false);
         }
 
+        // Crée et configure une caméra fixe qui servira de référence pour les spawn
+        GameObject fixedCamObj = new GameObject("FixedCamera");
+        fixedCamera = fixedCamObj.AddComponent<Camera>();
+        fixedCamera.CopyFrom(cam);
+        fixedCamera.transform.position = cam.transform.position;
+        fixedCamera.transform.rotation = cam.transform.rotation;
+        // On ne veut pas que cette caméra rende quoi que ce soit
+        fixedCamera.enabled = false;
+
         // Démarre la musique de fond
         if (backgroundMusicAudio != null)
         {
@@ -221,20 +232,20 @@ public class SpawnAtFixedDistance : MonoBehaviour
             return;
         lastSpawnTime = Time.time;
 
-        // Récupère la position du toucher (X, Y en coordonnées écran)
+        // Utilise la fixedCamera pour obtenir une position de spawn stable
         Vector2 touchPos = touchPosAction.ReadValue<Vector2>();
         Vector3 spawnPos;
 
         if (!isFirstCubePlaced)
         {
-            // Pour le premier cube, utilise ScreenToWorldPoint avec spawnDistance
             Vector3 screenPoint = new Vector3(touchPos.x, touchPos.y, spawnDistance);
-            spawnPos = cam.ScreenToWorldPoint(screenPoint);
+            spawnPos = fixedCamera.ScreenToWorldPoint(screenPoint);
             fixedZ = spawnPos.z;  // Enregistre la profondeur du premier cube
             isFirstCubePlaced = true;
 
-            // Instancie le premier cube, lui attribue le tag "FirstCube" et lui assigne un matériau aléatoire
+            // Instancie le premier cube, force son orientation horizontale, lui attribue le tag "FirstCube" et lui assigne un matériau aléatoire
             GameObject firstCube = Instantiate(EnemyPrefab, spawnPos, Quaternion.identity);
+            firstCube.transform.rotation = Quaternion.identity;
             if (cubeMaterials != null && cubeMaterials.Length > 0)
             {
                 Renderer rend = firstCube.GetComponent<Renderer>();
@@ -252,19 +263,17 @@ public class SpawnAtFixedDistance : MonoBehaviour
                     floorY = cubeCollider.bounds.min.y;
                 else
                     floorY = spawnPos.y - 0.5f;
-                // Crée le sol centré sur le premier cube
                 CreateFloor(floorY, spawnPos);
                 isFloorCreated = true;
             }
         }
         else
         {
-            // Pour les cubes suivants, calcule la position sur le plan à z = fixedZ
-            Ray ray = cam.ScreenPointToRay(touchPos);
+            // Pour les cubes suivants, utilise la fixedCamera pour calculer le point d'intersection sur le plan à z = fixedZ
+            Ray ray = fixedCamera.ScreenPointToRay(touchPos);
             float t = (fixedZ - ray.origin.z) / ray.direction.z;
             spawnPos = ray.GetPoint(t);
             GameObject newCube = Instantiate(EnemyPrefab, spawnPos, Quaternion.identity);
-            // Assigne un matériau aléatoire au cube
             if (cubeMaterials != null && cubeMaterials.Length > 0)
             {
                 Renderer rend = newCube.GetComponent<Renderer>();
@@ -285,10 +294,10 @@ public class SpawnAtFixedDistance : MonoBehaviour
         float width = 10f;
         float length = 10f;
         float thickness = 0.2f;
-        // Positionne le sol pour que sa surface supérieure soit alignée avec le bord inférieur du premier cube
         Vector3 floorPos = new Vector3(firstCubePos.x, y - thickness / 2, firstCubePos.z);
         floor.transform.position = floorPos;
         floor.transform.localScale = new Vector3(width, thickness, length);
+        floor.transform.rotation = Quaternion.identity; // Force l'orientation horizontale
         floor.name = "Floor";
 
         // Rend le sol 100% transparent (il existe mais n'est pas visible)
@@ -321,7 +330,6 @@ public class SpawnAtFixedDistance : MonoBehaviour
             scoreText.text = "Score: " + score.ToString();
         if (particleEffectPrefab != null)
         {
-            // Instancie plusieurs copies du système de particules autour de la position donnée
             int count = 10;
             float radius = 0.5f; // Ajuste le rayon selon tes besoins
             for (int i = 0; i < count; i++)
@@ -345,9 +353,7 @@ public class SpawnAtFixedDistance : MonoBehaviour
         }
         IEnumerator ScoreCoroutine()
         {
-            // Attend 3 secondes en temps réel
             yield return new WaitForSecondsRealtime(3f);
-            // Si le jeu est toujours actif, ajoute 1 point et affiche l'effet de particules
             if (Time.timeScale != 0 && spawnManager != null)
             {
                 spawnManager.AddScore(1, transform.position);
@@ -375,29 +381,22 @@ public class FloorCollisionHandler : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        // Si l'objet entrant n'est pas le premier cube (tag "FirstCube")
         if (!gameOverTriggered && collision.gameObject.tag != "FirstCube")
         {
             gameOverTriggered = true;
-            // Arrête la musique de fond
             if (SpawnAtFixedDistance.instance != null && SpawnAtFixedDistance.instance.bgAudioSource != null)
                 SpawnAtFixedDistance.instance.bgAudioSource.Stop();
-            // Joue l'audio de Game Over
             if (SpawnAtFixedDistance.instance != null && SpawnAtFixedDistance.instance.gameOverAudio != null)
                 AudioSource.PlayClipAtPoint(SpawnAtFixedDistance.instance.gameOverAudio, Camera.main.transform.position);
-            // Arrête le temps pour stopper le jeu
             Time.timeScale = 0f;
-            // Affiche le GameOverPanel
             if (gameOverPanel != null)
                 gameOverPanel.SetActive(true);
             else
                 Debug.LogWarning("GameOverPanel n'est pas assigné dans FloorCollisionHandler.");
-            // Masque le GamePanel
             if (gamePanel != null)
                 gamePanel.SetActive(false);
             else
                 Debug.LogWarning("GamePanel n'est pas assigné dans FloorCollisionHandler.");
-            // Met à jour le texte du GameOverPanel avec le score final
             if (gameOverText != null && SpawnAtFixedDistance.instance != null)
                 gameOverText.text = "Perdu ! Vous avez fait un score de: " + SpawnAtFixedDistance.instance.score.ToString();
             else
