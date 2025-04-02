@@ -3,40 +3,32 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
+using UnityEngine;
+
 public class PlaceMenuOnce : MonoBehaviour
 {
-    public float distanceFromCamera = 2f; // distance devant la caméra
-    private bool hasPlaced = false;
+    public float distance = 2f;
+    private static bool hasPlacedMenu = false;
 
     void Start()
     {
-        Camera mainCam = Camera.main;
+        if (hasPlacedMenu || Camera.main == null) return;
 
-        if (mainCam == null)
-        {
-            Debug.LogError("Main Camera not found");
-            return;
-        }
+        Transform cam = Camera.main.transform;
 
-        // Place le canvas devant la caméra
-        Vector3 forwardOffset = mainCam.transform.forward.normalized * distanceFromCamera;
-        transform.position = mainCam.transform.position + forwardOffset;
+        // Place le Canvas devant la caméra
+        Vector3 offset = cam.forward * distance;
+        transform.position = cam.position + offset;
 
-        // Le faire face à la caméra
-        transform.LookAt(mainCam.transform);
+        // Tourner vers la caméra
+        transform.LookAt(cam);
         transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y + 180, 0);
 
-        // Détacher le menu de tout parent pour qu'il reste fixe
+        // Se détache pour rester fixe
         transform.SetParent(null);
-        hasPlaced = true;
-    }
 
-    void Update()
-    {
-        // Ne rien faire ensuite
-        if (hasPlaced)
-        {
-            enabled = false; // Désactive le script pour toujours
-        }
+        hasPlacedMenu = true; // ✅ Marque que c’est fait
+        this.enabled = false; // 🔒 Bloque le script
     }
 }
+
